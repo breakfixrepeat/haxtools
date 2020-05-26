@@ -11,6 +11,20 @@ Running containerised commands from within your shell is then as simple as appen
 
 Will launch a shiny new z shell instance running within your hosts shell. From there you can access any of the tools bundled with haxtools with their normal names.
 
+## Get Started
+
+Simply run:
+
+`bash <(curl -s https://raw.githubusercontent.com/breakfixrepeat/haxtools/master/install.sh)`
+
+ This will clone the haxtools repo to $HOME/.haxtools along with several other dependencies...
+
+![Imgur](https://i.imgur.com/WpJrfiY.gif)
+
+ Docker/Podman will be installed on supported OS's (Ubuntu, Debian & Fedora currently), if not already installed.
+
+## Usage
+
 Predefined commands are located in the `.haxtools/.tools` directory where you can add your own. As long as you prepend them with `.cmd_` they will be sourced automatically when you next launch your shell.
 
 Prefer a GUI based terminal session? Easy, just run:
@@ -23,23 +37,13 @@ From there you can customise the shell environment to your liking. The container
 
 Installation is straightforward and doesn't require any prior experience with docker (though this will help if you wish to further customise Haxtools or add your own custom commands).
 
-## Get Started
-
-Simply run:
-
-`bash <(curl -s https://raw.githubusercontent.com/breakfixrepeat/haxtools/master/install.sh)`
-
- This will clone the haxtools repo to $HOME/.haxtools along with several other dependencies..
-
- Docker/Podman will be installed on supported OS's (Ubuntu, Debian & Fedora currently) if not already installed.
-
- ## Customise
+## Customise
 
 Any changes to the Haxtools home directory are persistent, as by default the docker `/root` directory is mounted in `.haxtools/home`
 
-***Note** - Files created by the docker container are owned by root, it's easier to make changes from within the docker environment as opposed to changing configs from your host.*
+***Note*** *- Files created by the docker container are owned by root, it's easier to make changes from within the docker environment as opposed to changing configs from your host.*
 
-Add additional volume mounts to the `HAXTOOLS_VOLUMES` environment variable within the `.haxrc` file to mount additional folders within the container at runtime.
+Add additional volume mounts to the `HAXTOOLS_VOLUMES` environment variable within the `.haxrc` file to mount additional folders in the container at runtime.
 
 # Contributions & Requests
 
