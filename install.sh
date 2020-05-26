@@ -760,11 +760,12 @@ if [[ -z $docker ]]; then
     echo -e '['$cyan_fg'*'$reset']'$cyan_fg' Installing docker...\n'$reset
     if [ $os == "Ubuntu" ]; then
       curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+      sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu    $(lsb_release -cs)    stable"
     fi
     if [ $os == "Debian" ]; then
       curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+      sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian    $(lsb_release -cs)    stable"
     fi
-    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
     sudo apt-get update
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io
     sudo usermod -aG docker $USER
@@ -791,9 +792,10 @@ if ! docker images | grep -q 'haxtools'; then
     elif [[ $reply =~ ^(y|Y|'')$ ]]; then
       echo -e '\n['$cyan_fg'*'$reset']'$cyan_fg" Downloading Haxtools...\n"$reset
       if [[ $dockerinstalled = true ]]; then
-        sudo su $USER
+        sudo su $USER "docker pull infosux/haxtools"
+      else
+        docker pull infosux/haxtools
       fi
-      docker pull infosux/haxtools
       echo -e '\n['$green_fg'✓'$reset']'$cyan_fg" Done!\n"$reset
       break
     else
@@ -813,7 +815,7 @@ sleep 2
 echo -e $bold$cyan_fg'You can now run haxtools within a terminator shell by running:\n'$reset
 echo -e 'hax\n'
 echo -e $bold$cyan_fg'Alternatively append a command, for example:\n'$reset
-echo -e 'hax tmux'$bold$cyan_fg' OR '$reset'haxtools nmap -sC -sV -p- 1.1.1.1\n'
+echo -e 'hax tmux'$bold$cyan_fg' OR '$reset'hax nmap -sC -sV -p- 1.1.1.1\n'
 echo -e $bold$cyan_fg'You can also append "d" to most commands found in haxtools to launch directly within your shell, e.g.:\n'$reset
 echo -e 'damass\n'
 echo -e $bold$cyan_fg'Update to the latest version of haxtools with:\n'$reset
