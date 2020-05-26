@@ -640,11 +640,10 @@ else
 fi
 echo -e '\n['$green_fg'✓'$reset']'$cyan_fg" Done!\n"$reset
 echo -e '['$cyan_fg'*'$reset']'$cyan_fg" Retrieiving gf-patterns\n"$reset
-if [ ! -d "/tmp/gf-patterns/.git" ]; then
-  git clone https://github.com/1ndianl33t/Gf-Patterns /tmp/gf-patterns
-else
-  git -C /tmp/gf-patterns pull
+if [ ! -d "$HOME/.haxtools/home/.gf" ]; then
+  mkdir $HOME/.haxtools/home/.gf
 fi
+git clone https://github.com/1ndianl33t/Gf-Patterns /tmp/gf-patterns
 cp /tmp/gf-patterns/*.json $HOME/.haxtools/home/.gf
 rm -rf /tmp/gf-patterns
 if [ ! -d "/tmp/gf/.git" ]; then
