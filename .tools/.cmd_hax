@@ -1,0 +1,8 @@
+hax(){
+  version='latest'
+  if [[ $1 = (update|download) ]]; then
+    haxtools-update latest
+  else
+    haxtools "$@"
+  fi
+}

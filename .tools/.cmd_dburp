@@ -1,0 +1,25 @@
+dburp(){
+  droot
+  xhost + local:haxtools &> /dev/null
+  docker run --rm -dit \
+  --privileged \
+  --net host \
+  -e DISPLAY=unix$DISPLAY \
+  --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw \
+  --volume=/dev/shm:/dev/shm \
+  ${HAXTOOLS_VOLUMES} \
+  infosux/haxtools:latest bash -c "java -jar -Xmx4G /usr/bin/burpsuite"$@""
+}
+
+dburp-ff(){
+  droot
+  xhost + local:haxtools &> /dev/null
+  docker run --rm -dit \
+  --privileged \
+  --net host \
+  -e DISPLAY=unix$DISPLAY \
+  --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw \
+  --volume=/dev/shm:/dev/shm \
+  ${HAXTOOLS_VOLUMES} \
+  infosux/haxtools:latest bash -c "java -jar -Xmx4G /usr/bin/burpsuite & firefox"
+}

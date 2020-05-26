@@ -1,0 +1,8 @@
+dzsh(){
+  droot
+  docker run --rm -it \
+  --privileged \
+  --net host \
+  ${HAXTOOLS_VOLUMES} \
+  infosux/haxtools:latest zsh "$@"
+}

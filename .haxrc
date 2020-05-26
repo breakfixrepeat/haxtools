@@ -1,0 +1,53 @@
+HAXTOOLS_VOLUMES=(
+--volume=$HAXTOOLS_HOME:/root
+)
+
+### Here be dragons ###
+HAXTOOLS_DIR=$HOME/.haxtools
+HAXTOOLS_HOME=$HOME/.haxtools/home
+HAXRC=$HAXTOOLS_DIR/.haxrc
+
+for f in $HAXTOOLS_DIR/.tools/.cmd_*; do
+  . "$f"
+done
+
+# Haxtools functions
+
+droot(){
+  mkdir -p $HAXTOOLS_HOME
+  cd $HAXTOOLS_HOME
+}
+
+haxtools(){
+  xhost + local:haxtools &> /dev/null
+  docker run -dit --rm \
+  -e DISPLAY=unix$DISPLAY \
+  --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw \
+  --volume=/dev/shm:/dev/shm \
+  ${HAXTOOLS_VOLUMES} \
+  --privileged \
+  --cap-add=NET_ADMIN \
+  --cap-add=NET_BROADCAST \
+  --net=host \
+  --hostname=haxtools \
+  --name haxxx infosux/haxtools:$version "$@"
+}
+
+haxtools-update(){
+  sudo chown -R $USER:$USER $HAXTOOLS_HOME
+  git -C $HAXTOOLS_DIR pull
+  git -C $HAXTOOLS_HOME/.oh-my-zsh pull https://github.com/ohmyzsh/ohmyzsh
+  git -C $HAXTOOLS_HOME/.bash_it pull https://github.com/Bash-it/bash-it
+  git -C $HAXTOOLS_HOME/.tmux https://github.com/gpakosz/.tmux
+  git clone https://github.com/1ndianl33t/Gf-Patterns /tmp/gf-patterns
+  cp /tmp/gf-patterns/*.json $HOME/.haxtools/home/.gf
+  rm -rf /tmp/gf-patterns
+  git clone https://github.com/tomnomnom/gf /tmp/gf
+  cp /tmp/gf/gf-completions.bash $HOME/.haxtools/home/.gf
+  cp /tmp/gf/gf-completions.zsh $HOME/.haxtools/home/.gf
+  cp /tmp/gf/examples/*.json $HOME/.haxtools/home/.gf
+  rm -rf /tmp/gf
+  docker pull infosux/haxtools:$1
+  source $HAXRC
+  sudo chown -R root:root $HAXTOOLS_HOME
+}
