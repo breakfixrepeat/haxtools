@@ -799,6 +799,11 @@ if [[ $gpgssh != true ]]; then
         echo -e '\n['$red_fg$blink'!'$reset']'$red_fg' Try again\n'$reset
       fi
     done
+  else
+    echo -e '['$red_fg$blink'!'$reset']'$red_fg' No existing ssh keys found\n'$reset
+    echo -e '\n['$cyan_fg'*'$reset']'$cyan_fg' Generating ssh keypair...\n'$reset
+    ssh-keygen -t rsa -b 4096 -f $HOME/.haxtools/home/.ssh/id_rsa -P ""
+    echo -e '\n['$green_fg'✓'$reset']'$cyan_fg" Done!\n"$reset
   fi
 fi
 
