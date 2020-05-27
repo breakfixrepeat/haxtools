@@ -1,17 +1,16 @@
+HAXTOOLS_DIR=$HOME/.haxtools
+HAXTOOLS_HOME=$HOME/.haxtools/home
+HAXRC=$HAXTOOLS_DIR/.haxrc
+
 HAXTOOLS_VOLUMES=(
 --volume=$HAXTOOLS_HOME:/root
 )
 
 ### Here be dragons ###
-HAXTOOLS_DIR=$HOME/.haxtools
-HAXTOOLS_HOME=$HOME/.haxtools/home
-HAXRC=$HAXTOOLS_DIR/.haxrc
 
 for f in $HAXTOOLS_DIR/.tools/.cmd_*; do
   . "$f"
 done
-
-# Haxtools functions
 
 droot(){
   mkdir -p $HAXTOOLS_HOME
