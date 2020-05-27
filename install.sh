@@ -598,6 +598,63 @@ else
   echo -e '['$red_fg$blink'!'$reset']'$red_fg' OS detection failed'$reset
 fi
 
+# docker install
+echo -e '['$cyan_fg'*'$reset']'$cyan_fg" Checking if docker is installed...\n"$reset
+docker=$(which docker)
+if [[ -v $docker ]]; then
+  dockerinstalled=true
+fi
+if [[ -z $docker ]]; then
+  if [ $os == "Fedora" ]; then
+    docker=$(which podman)
+    if [[ -z $docker ]]; then
+      echo -e '['$red_fg$blink'!'$reset']'$red_fg' Docker not found\n'$reset
+      echo -e '['$cyan_fg'*'$reset']'$cyan_fg' Installing podman & podman-docker...\n'$reset
+      sudo dnf install podman podman-docker
+      dockerinstalled=true
+      echo -e '\n['$green_fg'✓'$reset']'$cyan_fg" Done!\n"$reset
+      echo -e '['$red_fg$blink'!'$reset']'$red_fg' Please note that you will need to log out before you can run docker containers\n'$reset
+      sleep 5
+    else
+      dockerinstalled=true
+    fi
+  elif [ $os == "Ubuntu" ] || [ $os == "Debian" ]; then
+    echo -e '['$red_fg$blink'!'$reset']'$red_fg' Docker not found\n'$reset
+    echo -e '['$cyan_fg'*'$reset']'$cyan_fg' Installing docker...\n'$reset
+    if [ $os == "Ubuntu" ]; then
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+      sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu    $(lsb_release -cs)    stable"
+    fi
+    if [ $os == "Debian" ]; then
+      curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+      sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian    $(lsb_release -cs)    stable"
+    fi
+    sudo apt-get update
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+    sudo usermod -aG docker $USER
+    sudo systemctl enable docker
+    dockerinstalled=true
+    echo -e '\n['$green_fg'✓'$reset']'$cyan_fg" Done!\n"$reset
+    echo -e '['$red_fg$blink'!'$reset']'$red_fg' Please note that you will need to log out before you can run docker containers\n'$reset
+    sleep 5
+  else
+    if [[ -z $docker ]]; then
+      echo -e '['$red_fg$blink'!'$reset']'$red_fg' OS not currently supported, please ensure that docker is installed before proceeding\n'$reset
+      exit 0
+    fi
+  fi
+else
+  echo -e '['$green_fg'✓'$reset']'$cyan_fg' Docker is already installed\n'$reset
+fi
+if ! id -nG $USER | grep -q 'docker' && ([[ -n $docker ]] && [[ $docker != /usr/bin/podman ]]); then
+  echo -e '['$red_fg$blink'!'$reset']'$red_fg" User $USER is not a member of the docker group\n"$reset
+  echo -e '['$cyan_fg'*'$reset']'$cyan_fg" Adding user $USER to docker group\n"$reset
+  sudo usermod -aG docker $USER
+  echo -e '['$red_fg$blink'!'$reset']'$red_fg' Please note that you will need to log out before you can run docker containers\n'$reset
+  sleep 3
+fi
+
+# Check if .haxtools dir already exists
 if [ -d "$HOME/.haxtools/home" ]; then
   owner=$(ls -ld $HOME/.haxtools/home | awk '{print $3}')
   if [[ $owner = 'root' ]] && [[ $USER != 'root' ]]; then
@@ -699,7 +756,11 @@ fi
 if grep -Eq 'gpgconf.*agent-ssh-socket' $shellrc && ! grep -Eq 'gpgconf.*agent-ssh-socket' $HOME/.haxtools/home/.zshrc && [[ ! -s $HOME/haxtools/home/.ssh/id_rsa ]]; then
   echo -e '['$cyan_fg$blink'*'$reset']'$cyan_fg' You appear to be using gpg ssh auth, would you like to use it in haxtools? '$reset'[Y/n]\n'
   until [[ reply =~ ^(y|Y|''|n|N)$ ]]; do
-    read -e -p ">> " reply
+    if [[ $SHELL =~ zsh$ ]]; then
+      read "reply?>> "
+    else
+      read -e -p ">> " reply
+    fi
     if [[ $reply =~ ^(n|N)$ ]]; then
       echo -e '\n['$cyan_fg'*'$reset']'$cyan_fg' Skipping...\n'$reset
       break
@@ -714,11 +775,15 @@ if grep -Eq 'gpgconf.*agent-ssh-socket' $shellrc && ! grep -Eq 'gpgconf.*agent-s
     fi
   done
 fi
-if [[ ! $gpgssh = true ]]; then
+if [[ $gpgssh != true ]]; then
   if [[ -s $HOME/.ssh/id_rsa ]] && [[ ! -s $HOME/haxtools/home/.ssh/id_rsa ]] && ! grep -Eq 'gpgconf.*agent-ssh-socket' $HOME/.haxtools/home/.zshrc; then
     echo -e '['$cyan_fg$blink'*'$reset']'$cyan_fg' You have an existing ssh keypair, would you like to use it in haxtools? '$reset'[Y/n]\n'
     until [[ reply =~ ^(y|Y|''|n|N)$ ]]; do
-      read -e -p ">> " reply
+      if [[ $SHELL =~ zsh$ ]]; then
+        read "reply?>> "
+      else
+        read -e -p ">> " reply
+      fi
       if [[ $reply =~ ^(n|N)$ ]]; then
         echo -e '\n['$cyan_fg'*'$reset']'$cyan_fg' Generating ssh keypair...\n'$reset
         ssh-keygen -t rsa -b 4096 -f $HOME/.haxtools/home/.ssh/id_rsa -P ""
@@ -737,62 +802,22 @@ if [[ ! $gpgssh = true ]]; then
   fi
 fi
 
-# docker install
-echo -e '['$cyan_fg'*'$reset']'$cyan_fg" Checking if docker is installed...\n"$reset
-docker=$(which docker)
-if [[ -v $docker ]]; then
-  dockerinstalled=true
-fi
-if [[ -z $docker ]]; then
-  if [ $os == "Fedora" ]; then
-    docker=$(which podman)
-    if [[ -z $docker ]]; then
-      echo -e '['$red_fg$blink'!'$reset']'$red_fg' Docker not found\n'$reset
-      echo -e '['$cyan_fg'*'$reset']'$cyan_fg' Installing podman & podman-docker...\n'$reset
-      sudo dnf install podman podman-docker
-      dockerinstalled=true
-      echo -e '\n['$green_fg'✓'$reset']'$cyan_fg" Done!\n"$reset
-    else
-      dockerinstalled=true
-    fi
-  elif [ $os == "Ubuntu" ] || [ $os == "Debian" ]; then
-    echo -e '['$red_fg$blink'!'$reset']'$red_fg' Docker not found\n'$reset
-    echo -e '['$cyan_fg'*'$reset']'$cyan_fg' Installing docker...\n'$reset
-    if [ $os == "Ubuntu" ]; then
-      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-      sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu    $(lsb_release -cs)    stable"
-    fi
-    if [ $os == "Debian" ]; then
-      curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-      sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian    $(lsb_release -cs)    stable"
-    fi
-    sudo apt-get update
-    sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-    sudo usermod -aG docker $USER
-    sudo systemctl enable docker
-    dockerinstalled=true
-    echo -e '\n['$green_fg'✓'$reset']'$cyan_fg" Done!\n"$reset
-  else
-    if [[ -z $docker ]]; then
-      echo -e '['$red_fg$blink'!'$reset']'$red_fg' OS not currently supported, please ensure that docker is installed\n'$reset
-    fi
-  fi
-else
-  echo -e '['$green_fg'✓'$reset']'$cyan_fg' Docker is already installed\n'$reset
-fi
-
 # haxtools image download
 if ! docker images | grep -q 'haxtools'; then
   echo -e '['$cyan_fg$blink'*'$reset']'$cyan_fg' The haxtools image has not been downloaded, do you want to do this now? '$reset'[Y/n]\n'
   until [[ reply =~ ^(y|Y|''|n|N)$ ]]; do
-    read -e -p ">> " reply
+    if [[ $SHELL =~ zsh$ ]]; then
+      read "reply?>> "
+    else
+      read -e -p ">> " reply
+    fi
     if [[ $reply =~ ^(n|N)$ ]]; then
       echo -e '\n['$cyan_fg'*'$reset']'$cyan_fg' Skipping Haxtools download...\n'$reset
       break
     elif [[ $reply =~ ^(y|Y|'')$ ]]; then
       echo -e '\n['$cyan_fg'*'$reset']'$cyan_fg" Downloading Haxtools...\n"$reset
       if [[ $dockerinstalled = true ]]; then
-        sudo su $USER "docker pull infosux/haxtools"
+        sudo su $USER -c "docker pull infosux/haxtools"
       else
         docker pull infosux/haxtools
       fi
