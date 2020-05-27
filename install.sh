@@ -820,5 +820,5 @@ echo -e $bold$cyan_fg'You can also append "d" to most commands found in haxtools
 echo -e 'damass\n'
 echo -e $bold$cyan_fg'Update to the latest version of haxtools with:\n'$reset
 echo -e 'hax update\n'
-echo -e $bold$cyan_fg'Add your own commands in the .haxtools/.tools directory, just make sure to prepend them with .cmd_ (You even use a different docker image than haxtools)\n'$reset
+echo -e $bold$cyan_fg'Add your own commands in the .haxtools/.tools directory, just make sure to prepend them with .cmd_ (You can even use a different docker image than haxtools)\n'$reset
 echo -e $cyan_fg'Happy haxing! :)\n'$reset
