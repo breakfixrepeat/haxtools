@@ -1,10 +1,8 @@
 # Haxtools
 
-A highly customised CTF, bounty hunting & penetration testing environment based on the official kali-rolling docker image.
+***A highly customised CTF, bounty hunting & penetration testing environment based on the official kali-rolling docker image.***
 
-This project was created as a way of bundling and maintaining useful security tools in to a single docker image, minus the hassle of installing, configuring and ensuring that they are kept up to date.
-
-Haxtools provides a wrapper for the haxtools-docker image (and any other docker image for that matter) by sourcing itself within your shells rc file.
+Haxtools provides a wrapper for the [haxtools-docker](https://github.com/breakfixrepeat/haxtools-docker) image (and any other docker image for that matter) by sourcing itself within your shells rc file.
 Running containerised commands from within your shell is then as simple as appending 'd' to the name of the command you wish to run, e.g:
 
 `dzsh`
