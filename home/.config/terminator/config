@@ -25,7 +25,7 @@
       last_active_term = 108a4907-7608-49a6-ba23-bb6ed615a49d
       last_active_window = True
     [[[terminal1]]]
-      command = echo -e "\e[96mHaxtools \e[39mv\e[32m$HAXTOOLS_BUILD_DATE \e[39m@\e[32m$HAXTOOLS_BULD_TIME \e[39m- \e[96mBy @infosux\e[39m"; zsh
+      command = echo -e "\e[96mHaxtools \e[39mv\e[32m$HAXTOOLS_BUILD_DATE \e[39m@\e[32m$HAXTOOLS_BUILD_TIME \e[39m- \e[96mBy @infosux\e[39m"; zsh
       type = Terminal
       parent = child0
       order = 0
