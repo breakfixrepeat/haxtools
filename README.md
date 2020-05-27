@@ -15,7 +15,7 @@ Will launch a shiny new z shell instance running within your hosts shell. From t
 
 Simply run:
 
-`bash <(curl -s https://raw.githubusercontent.com/breakfixrepeat/haxtools/master/install.sh)`
+`source <(curl -s https://raw.githubusercontent.com/breakfixrepeat/haxtools/master/install.sh)`
 
  This will clone the haxtools repo to $HOME/.haxtools along with several other dependencies...
 
