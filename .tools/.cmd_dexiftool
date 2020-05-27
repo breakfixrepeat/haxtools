@@ -4,5 +4,5 @@ dexiftool(){
   --privileged \
   --net host \
   ${HAXTOOLS_VOLUMES} \
-  infosux/haxtools:latest dexiftool "$@"
+  infosux/haxtools:latest exiftool "$@"
 }

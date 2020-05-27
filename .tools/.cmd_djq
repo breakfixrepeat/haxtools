@@ -4,5 +4,5 @@ djq(){
   --privileged \
   --net host \
   ${HAXTOOLS_VOLUMES} \
-  infosux/haxtools:latest djq "$@"
+  infosux/haxtools:latest jq "$@"
 }

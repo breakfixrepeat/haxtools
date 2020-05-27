@@ -1,8 +1,8 @@
-dgit(){
+dsqlmap(){
   droot
   docker run --rm -it \
   --privileged \
   --net host \
   ${HAXTOOLS_VOLUMES} \
-  infosux/haxtools:latest git "$@" && zsh
+  infosux/haxtools:latest sqlmap "$@"
 }
