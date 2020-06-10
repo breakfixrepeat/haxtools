@@ -1,5 +1,4 @@
 dssh(){
-  droot
   docker run --rm -it \
   --privileged \
   --net host \

@@ -1,5 +1,4 @@
 ddirbuster(){
-  droot
   xhost + local:haxtools &> /dev/null
   docker run --rm -dit \
   --privileged \
