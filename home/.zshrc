@@ -38,6 +38,8 @@ pj
 tmux
 )
 
+setopt NO_BG_NICE
+
 source $ZSH/oh-my-zsh.sh
 source $HOME/.gf/gf-completion.zsh
 source <(antibody init) &>/dev/null
