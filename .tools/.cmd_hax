@@ -1,8 +1,21 @@
 hax(){
   version='latest'
-  if [[ $1 = 'update' ]]; then
-    haxtools-update latest
+  if [[ -v 1 ]]; then
+    case $1 in
+      update)
+        haxtools-update $version
+        ;;
+      init)
+        echo "not implemented yet"
+        ;;
+      firefox | chromium | burp* | dirbuster | wireshark | zap*)
+        haxtools-gui "$@"
+        ;;
+      *)
+        haxtools "$@"
+        ;;
+    esac
   else
-    haxtools "$@"
+    haxtools-gui
   fi
 }

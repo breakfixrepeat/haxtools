@@ -12,12 +12,22 @@ for f in $HAXTOOLS_DIR/.tools/.cmd_*; do
   . "$f"
 done
 
-droot(){
-  mkdir -p $HAXTOOLS_HOME
-  cd $HAXTOOLS_HOME
+haxtools(){
+  xhost + local:haxtools &> /dev/null
+  docker run -it --rm \
+  -e DISPLAY=unix$DISPLAY \
+  --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw \
+  --volume=/dev/shm:/dev/shm \
+  ${HAXTOOLS_VOLUMES} \
+  --privileged \
+  --cap-add=NET_ADMIN \
+  --cap-add=NET_BROADCAST \
+  --net=host \
+  --hostname=haxtools \
+  --name haxxx infosux/haxtools "$@"
 }
 
-haxtools(){
+haxtools-gui(){
   xhost + local:haxtools &> /dev/null
   docker run -dit --rm \
   -e DISPLAY=unix$DISPLAY \
