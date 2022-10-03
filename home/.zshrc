@@ -1,49 +1,28 @@
-TERM=xterm-256color
+source ~/.config/antigen.zsh
 
-export ZSH="/root/.oh-my-zsh"
+antigen use oh-my-zsh
 
-ZSH_THEME="minimal"
+antigen bundle command-not-found
+antigen bundle common-aliases
+antigen bundle encode64
+antigen bundle extract
+antigen bundle git
+antigen bundle history
+antigen bundle pj
+antigen bundle tmux
+antigen bundle zsh-users/zsh-autosuggestions
+antigen bundle zsh-users/zsh-completions
+antigen bundle zsh-users/zsh-syntax-highlighting
 
-CASE_SENSITIVE="true"
+antigen theme minimal
 
-# HYPHEN_INSENSITIVE="true"
-
-DISABLE_AUTO_UPDATE="true"
-
-# DISABLE_UPDATE_PROMPT="true"
-
-# export UPDATE_ZSH_DAYS=13
-
-# DISABLE_MAGIC_FUNCTIONS=true
-
-# DISABLE_LS_COLORS="true"
-
-# DISABLE_AUTO_TITLE="true"
-
-ENABLE_CORRECTION="true"
-
-# COMPLETION_WAITING_DOTS="true"
-
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-HIST_STAMPS="dd/mm/yyyy"
-
-plugins=(
-command-not-found
-common-aliases
-encode64
-extract
-history
-pj
-tmux
-)
+antigen apply
 
 setopt NO_BG_NICE
 
-source $ZSH/oh-my-zsh.sh
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#626262"
+
 source $HOME/.gf/gf-completion.zsh
-source <(antibody init) &>/dev/null
-antibody bundle < ~/.zsh_plugins &>/dev/null
 
 if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]
 then
