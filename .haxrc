@@ -54,6 +54,7 @@ haxtools(){
   --cap-add=NET_ADMIN \
   --cap-add=NET_BROADCAST \
   --net=host \
+  --add-host="haxtools:127.0.0.1" \
   --hostname=haxtools \
   --name $haxtools_name infosux/haxtools:full "$@"
 }
