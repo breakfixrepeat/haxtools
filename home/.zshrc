@@ -24,14 +24,13 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#626262"
 
 source $HOME/.gf/gf-completion.zsh
 
+export LANGUAGE="en_GB"
 if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]
 then
-    PATH="$HOME/.local/bin:$HOME/bin:$PATH:/usr/share/doc/python3-impacket/examples/"
+    export PATH="$HOME/.local/bin:$HOME/bin:$PATH:/usr/share/doc/python3-impacket/examples/"
 fi
-export PATH
 
 alias install='apt-get update && apt-get install $@'
-alias burpsuite='java -jar -Xmx4G /usr/bin/burpsuite &'
 alias chromium='chromium --no-sandbox &'
 alias firefox='firefox &'
 alias msfconsole='service postgresql start && /usr/bin/msfconsole'
