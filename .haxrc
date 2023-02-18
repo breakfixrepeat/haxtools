@@ -1,12 +1,8 @@
 # Custom docker volume mounts
-# Uncomment to add additional volume mounts
-# Separate with spaces
-#HAXTOOLS_USER_VOLUMES=(--volume=~/CTFs:/home/hax/CTFs)
-
-# Docker container UID
-# Default is your current users UID
-# If you change this you will need to delete the $HAXTOOLS_HOME/.antigen directory if it exists
-LOCAL_USER_ID=$(id -u)
+# Uncomment to add additional volume mounts. Separate with spaces or newlines
+# HAXTOOLS_USER_VOLUMES=(
+#   --volume=$HOME/CTFs:/home/hax/CTFs
+# )
 
 # Host system directories
 # There should be no need to change these.
@@ -14,27 +10,36 @@ LOCAL_USER_ID=$(id -u)
 HAXTOOLS_HOME=$HAXTOOLS_DIR/home
 HAXRC=$HAXTOOLS_DIR/.haxrc
 
+# Docker container UID
+# Default is your current users UID
+# If you change this you will need to delete the $HAXTOOLS_HOME/.antigen directory if it exists
+LOCAL_USER_ID=$(id -u)
+LOCAL_USER_GID=$(id -g)
+
+if [[ $LOCAL_USER_ID -gt 0 ]]; then
+  HAXTOOLS_VOLUMES=(
+    $HAXTOOLS_USER_VOLUMES
+    --volume=$HAXTOOLS_HOME:/home/hax
+    --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw
+    --volume=$HOME/.Xauthority:/home/hax/.Xauthority:ro
+    --volume=/dev/shm:/dev/shm
+  )
+else
+  HAXTOOLS_VOLUMES=(
+    $HAXTOOLS_USER_VOLUMES
+    --volume=$HAXTOOLS_HOME:/root
+    --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw
+    --volume=$HOME/.Xauthority:/root/.Xauthority:ro
+    --volume=/dev/shm:/dev/shm
+  )
+fi
+
 ### Here be dragons ###
 for f in $HAXTOOLS_DIR/.tools/.cmd_*; do
   . "$f"
 done
 
 haxtools(){
-  if [[ $LOCAL_USER_ID -gt 0 ]]; then
-    HAXTOOLS_VOLUMES=(
-    $HAXTOOLS_USER_VOLUMES
-    --volume=$HAXTOOLS_HOME:/home/hax
-    --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw
-    --volume=/dev/shm:/dev/shm
-    )
-  else
-    HAXTOOLS_VOLUMES=(
-    $HAXTOOLS_USER_VOLUMES
-    --volume=$HAXTOOLS_HOME:/root
-    --volume=/tmp/.X11-unix:/tmp/.X11-unix:rw
-    --volume=/dev/shm:/dev/shm
-    )
-  fi
   haxtools_name="haxtools$n"
   launched=0
   while [[ "$launched" == 0 ]]; do
@@ -45,42 +50,101 @@ haxtools(){
       launched=1
     fi
   done
-  xhost + local:haxtools &> /dev/null
-  docker run -it --rm \
-  -e DISPLAY=unix$DISPLAY \
-  ${HAXTOOLS_VOLUMES} \
-  --env LOCAL_USER_ID=$LOCAL_USER_ID \
-  --privileged \
-  --cap-add=NET_ADMIN \
-  --cap-add=NET_BROADCAST \
-  --net=host \
-  --add-host="haxtools:127.0.0.1" \
-  --hostname=haxtools \
-  --name $haxtools_name infosux/haxtools:full "$@"
+  xhost +si:localuser:$USER &> /dev/null
+  if [[ "$OSTYPE" =~ ^darwin ]]; then
+    docker run -it --rm \
+    -e DISPLAY=docker.for.mac.host.internal:0 \
+    ${HAXTOOLS_VOLUMES} \
+    --env LOCAL_USER_ID=$LOCAL_USER_ID \
+    --env LOCAL_USER_GID=$LOCAL_USER_GID \
+    ${HAXTOOLS_ENV} \
+    --privileged \
+    --cap-add=NET_ADMIN \
+    --cap-add=NET_BROADCAST \
+    --net=host \
+    --add-host="haxtools:127.0.0.1" \
+    --hostname=haxtools \
+    --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+  else
+    docker run -it --rm \
+    -e DISPLAY=unix$DISPLAY \
+    ${HAXTOOLS_VOLUMES} \
+    --env LOCAL_USER_ID=$LOCAL_USER_ID \
+    --env LOCAL_USER_GID=$LOCAL_USER_GID \
+    ${HAXTOOLS_ENV} \
+    --privileged \
+    --cap-add=NET_ADMIN \
+    --cap-add=NET_BROADCAST \
+    --net=host \
+    --add-host="haxtools:127.0.0.1" \
+    --hostname=haxtools \
+    --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+  fi
+}
+
+git_pull_or_clone() {
+  REPO_PATH="$1"
+  REPO_URL="$2"
+  shift 2
+
+  if [[ -d "$HAXTOOLS_HOME/$REPO_PATH" ]]; then
+    haxtools zsh -ic "cd ${REPO_PATH} && git pull"
+  else
+    haxtools zsh -ic "git clone ${@} ${REPO_URL} ${REPO_PATH}"
+  fi
+}
+
+haxtools-install-optional-extras(){
+  haxtools_git_pull_or_clone opt/seclists https://github.com/danielmiessler/SecLists.git '--depth 1'
+  haxtools zsh -ic 'git clone https://github.com/1ndianl33t/Gf-Patterns /tmp/gf-patterns && \cp -uf /tmp/gf-patterns/*.json ~/.gf/'
+  haxtools zsh -ic 'git clone https://github.com/tomnomnom/gf /tmp/gf && \cp -uf /tmp/gf/gf-completion.bash ~/.gf/ && \cp -uf /tmp/gf/gf-completion.zsh ~/.gf/ && \cp -uf /tmp/gf/examples/*.json ~/.gf/'
+  
+  haxtools zsh -ic 'mkdir -p ~/opt/windows'
+  haxtools_git_pull_or_clone opt/windows/jaws https://github.com/411Hall/JAWS.git '--depth 1'
+  haxtools_git_pull_or_clone opt/windows/nishang https://github.com/samratashok/nishang.git '--depth 1'
+  haxtools zsh -ic 'wget "https://raw.githubusercontent.com/BloodHoundAD/BloodHound/master/Collectors/SharpHound.exe" -O ~/opt/windows/sharphound.exe'
+  haxtools zsh -ic 'wget "https://raw.githubusercontent.com/BloodHoundAD/BloodHound/master/Collectors/SharpHound.ps1" -O ~/opt/windows/sharphound.ps1'
+  haxtools zsh -ic 'wget "https://raw.githubusercontent.com/carlospolop/PEASS-ng/master/winPEAS/winPEASbat/winPEAS.bat" -O ~/opt/windows/winpeas.bat'
+  
+  haxtools zsh -ic 'mkdir -p ~/opt/linux'
+  haxtools zsh -ic 'wget "https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh" -O ~/opt/linux/linenum.sh'
+  haxtools zsh -ic 'wget "https://raw.githubusercontent.com/diego-treitos/linux-smart-enumeration/master/lse.sh" -O ~/opt/linux/lse.sh'
+  haxtools zsh -ic 'wget "https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh" -O ~/opt/linux/linpeas.sh'
+  haxtools zsh -ic 'wget "https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy32" -O ~/opt/linux/pspy32'
+  haxtools zsh -ic 'wget "https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy32s" -O ~/opt/linux/pspy32s'
+  haxtools zsh -ic 'wget "https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy64" -O ~/opt/linux/pspy64'
+  haxtools zsh -ic 'wget "https://github.com/DominicBreuker/pspy/releases/download/v1.2.0/pspy64s" -O ~/opt/linux/pspy64s'
+  haxtools zsh -ic 'wget "https://raw.githubusercontent.com/stealthcopter/deepce/main/deepce.sh" -O ~/opt/linux/deepce.sh'
+  haxtools zsh -ic 'touch .haxextras'
 }
 
 haxtools-update(){
   haxtools zsh -ic "antigen update"
-  #git -C $HAXTOOLS_DIR stash
-  #git -C $HAXTOOLS_DIR pull
-  #git -C $HAXTOOLS_DIR stash pop
+
+  git -C $HAXTOOLS_DIR stash
+  git -C $HAXTOOLS_DIR pull
+  git -C $HAXTOOLS_DIR stash pop
+
   git -C $HAXTOOLS_HOME/.tmux pull https://github.com/gpakosz/.tmux
-  git clone https://github.com/1ndianl33t/Gf-Patterns /tmp/gf-patterns
-  \cp /tmp/gf-patterns/*.json $HAXTOOLS_HOME/.gf/
-  rm -rf /tmp/gf-patterns
-  git clone https://github.com/tomnomnom/gf /tmp/gf
-  \cp /tmp/gf/gf-completion.bash $HAXTOOLS_HOME/.gf/
-  \cp /tmp/gf/gf-completion.zsh $HAXTOOLS_HOME/.gf/
-  \cp /tmp/gf/examples/*.json $HAXTOOLS_HOME/.gf/
-  rm -rf /tmp/gf
+
   docker pull infosux/haxtools:full
-  docker system prune -f
+  docker rmi $(docker images -f "dangling=true" -q)
+
   source $HAXRC
+  if [[ -f "$HAXTOOLS_HOME/.haxextras" ]]; then
+    haxtools-install-optional-extras
+  fi
 }
 
 hax(){
   case "$1" in
+    '-ioe'|'--install-optional-extras')
+      haxtools-install-optional-extras
+      ;;
     'update'|'-up'|'--update')
+      HAXTOOLS_ENV=(
+        --env HAXTOOLS_BANNER=false
+      )
       haxtools-update
       ;;
     '--user'|'-u')
