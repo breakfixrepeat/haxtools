@@ -1,0 +1,61 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '0 3 * * 7'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      
+      - name: Claw back disk space
+        run: |
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/share/dotnet
+
+      - name: Set up QEMU        
+        uses: docker/setup-qemu-action@v1
+      
+      - name: Set up Docker Buildx        
+        uses: docker/setup-buildx-action@v1
+
+      - name: Docker login
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin docker.io
+
+      - name: Build base
+        working-directory: ./docker/base
+        run: |
+          export MAINTAINER="infosux"
+          export BUILD_DATE=$(date -u +"%Y-%m-%d")
+          export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
+          export VCS_URL=$(git config --get remote.origin.url)
+          export VCS_REF=$(git rev-parse --short HEAD)
+          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:base --push --platform=linux/arm64,linux/amd64 .
+
+      - name: Build cli
+        working-directory: ./docker/cli
+        run: |
+          export MAINTAINER="infosux"
+          export BUILD_DATE=$(date -u +"%Y-%m-%d")
+          export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
+          export VCS_URL=$(git config --get remote.origin.url)
+          export VCS_REF=$(git rev-parse --short HEAD)
+          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:cli --push --platform=linux/arm64,linux/amd64 .
+
+      - name: Build full
+        working-directory: ./docker/gui
+        run: |
+          export MAINTAINER="infosux"
+          export BUILD_DATE=$(date -u +"%Y-%m-%d")
+          export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
+          export VCS_URL=$(git config --get remote.origin.url)
+          export VCS_REF=$(git rev-parse --short HEAD)
+          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:gui --push --platform=linux/arm64,linux/amd64 .
