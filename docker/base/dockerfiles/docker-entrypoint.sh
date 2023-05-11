@@ -581,7 +581,8 @@ USER_GID=${LOCAL_USER_GID:-1000}
 
 if [[ $USER_ID -gt 0 ]]
 then
-  useradd --home-dir /home/hax --groups=sudo --shell=/bin/zsh --uid $USER_ID --gid $LOCAL_USER_GID hax
+  groupadd -g $USER_GID hax
+  useradd --home-dir /home/hax --groups=sudo --shell=/bin/zsh --uid $USER_ID --gid $USER_GID hax
   echo 'hax:hax' | chpasswd
   cd /home/hax
   exec gosu hax "$@"
