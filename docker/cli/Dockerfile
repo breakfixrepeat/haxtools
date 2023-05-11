@@ -36,7 +36,7 @@ RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdisco
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/proxify/cmd/proxify@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/cloudlist/cmd/cloudlist@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/uncover/cmd/uncover@latest
-RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/OWASP/Amass/v3/...@latest
+RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/owasp-amass/amass/v3/...@master
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/hahwul/dalfox/v2@latest
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
     && . $HOME/.cargo/env \
