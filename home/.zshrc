@@ -22,7 +22,7 @@ setopt NO_BG_NICE
 
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#626262"
 
-source $HOME/.gf/gf-completion.zsh
+# source $HOME/.gf/gf-completion.zsh
 
 export LANGUAGE="en_GB"
 if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]
