@@ -1,11 +1,9 @@
-FROM golang:latest AS build
+FROM golang:alpine AS build
 
-RUN export DEBIAN_FRONTEND="noninteractive" \
-    && apt -yqq update \
-    && apt -yqq install \
+RUN apk add \
         curl \
         git \
-        build-essential \
+        build-base \
         upx
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/tomnomnom/meg@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/tomnomnom/assetfinder@latest
