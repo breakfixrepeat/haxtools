@@ -20,6 +20,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
         git \
         gnupg2 \
         gosu \
+        iproute2 \
         jq \
         less \
         locales \
@@ -28,6 +29,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
         nmap \
         openssh-client \
         openssl \
+        openvpn \
         proxychains4 \
         python3 \
         python3-pip \
@@ -70,6 +72,5 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
 
 RUN chmod +x /docker-entrypoint.sh
 
-WORKDIR /home/hax
 ENTRYPOINT ["tini", "--", "/docker-entrypoint.sh"]
 CMD ["zsh"]

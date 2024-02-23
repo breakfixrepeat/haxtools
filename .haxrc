@@ -16,6 +16,10 @@ HAXRC=$HAXTOOLS_DIR/.haxrc
 LOCAL_USER_ID=$(id -u)
 LOCAL_USER_GID=$(id -g)
 
+# OVPN Settings
+OVPN_CONNECT=true
+OVPN_CFG=config.ovpn
+
 ### Here be dragons ###
 if [[ $LOCAL_USER_ID -gt 0 ]]; then
   HAXTOOLS_VOLUMES=(
@@ -34,6 +38,12 @@ else
     --volume=/dev/shm:/dev/shm
   )
 fi
+
+OVPN=(
+  --env OVPN_CONNECT=$OVPN_CONNECT
+  --env OVPN_CFG=$OVPN_CFG
+  --volume=$HAXTOOLS_DIR/$OVPN_CFG:/root/.ovpn/$OVPN_CFG
+)
 
 cyan_fg='\e[96m'
 green_fg='\e[92m'
@@ -633,34 +643,71 @@ haxtools(){
     fi
   done
   xhost +si:localuser:$USER &> /dev/null
-  if [[ "$OSTYPE" =~ ^darwin ]]; then
-    docker run -it --rm \
-    -e DISPLAY=docker.for.mac.host.internal:0 \
-    ${HAXTOOLS_VOLUMES[@]} \
-    --env LOCAL_USER_ID=$LOCAL_USER_ID \
-    --env LOCAL_USER_GID=$LOCAL_USER_GID \
-    ${HAXTOOLS_ENV} \
-    --privileged \
-    --cap-add=NET_ADMIN \
-    --cap-add=NET_BROADCAST \
-    --net=host \
-    --add-host="haxtools:127.0.0.1" \
-    --hostname=haxtools \
-    --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+  if [[ "$OSTYPE" =~ ^darwin ]]
+  then
+    if [[ -f $HAXTOOLS_DIR/$OVPN_CFG ]]
+    then
+      docker run -it --rm \
+      -e DISPLAY=docker.for.mac.host.internal:0 \
+      ${HAXTOOLS_VOLUMES[@]} \
+      --env LOCAL_USER_ID=$LOCAL_USER_ID \
+      --env LOCAL_USER_GID=$LOCAL_USER_GID \
+      ${HAXTOOLS_ENV} \
+      ${OVPN[@]} \
+      --privileged \
+      --cap-add=NET_ADMIN \
+      --cap-add=NET_BROADCAST \
+      --net=host \
+      --add-host="haxtools:127.0.0.1" \
+      --hostname=haxtools \
+      --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+    else
+      docker run -it --rm \
+      -e DISPLAY=docker.for.mac.host.internal:0 \
+      ${HAXTOOLS_VOLUMES[@]} \
+      --env LOCAL_USER_ID=$LOCAL_USER_ID \
+      --env LOCAL_USER_GID=$LOCAL_USER_GID \
+      ${HAXTOOLS_ENV} \
+      --privileged \
+      --cap-add=NET_ADMIN \
+      --cap-add=NET_BROADCAST \
+      --net=host \
+      --add-host="haxtools:127.0.0.1" \
+      --hostname=haxtools \
+      --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+    fi
   else
-    docker run -it --rm \
-    -e DISPLAY=unix$DISPLAY \
-    ${HAXTOOLS_VOLUMES[@]} \
-    --env LOCAL_USER_ID=$LOCAL_USER_ID \
-    --env LOCAL_USER_GID=$LOCAL_USER_GID \
-    ${HAXTOOLS_ENV} \
-    --privileged \
-    --cap-add=NET_ADMIN \
-    --cap-add=NET_BROADCAST \
-    --net=host \
-    --add-host="haxtools:127.0.0.1" \
-    --hostname=haxtools \
-    --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+    if [[ -f $HAXTOOLS_DIR/$OVPN_CFG ]]
+    then
+      docker run -it --rm \
+      -e DISPLAY=unix$DISPLAY \
+      ${HAXTOOLS_VOLUMES[@]} \
+      --env LOCAL_USER_ID=$LOCAL_USER_ID \
+      --env LOCAL_USER_GID=$LOCAL_USER_GID \
+      ${HAXTOOLS_ENV} \
+      ${OVPN[@]} \
+      --privileged \
+      --cap-add=NET_ADMIN \
+      --cap-add=NET_BROADCAST \
+      --net=host \
+      --add-host="haxtools:127.0.0.1" \
+      --hostname=haxtools \
+      --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+    else
+      docker run -it --rm \
+      -e DISPLAY=unix$DISPLAY \
+      ${HAXTOOLS_VOLUMES[@]} \
+      --env LOCAL_USER_ID=$LOCAL_USER_ID \
+      --env LOCAL_USER_GID=$LOCAL_USER_GID \
+      ${HAXTOOLS_ENV} \
+      --privileged \
+      --cap-add=NET_ADMIN \
+      --cap-add=NET_BROADCAST \
+      --net=host \
+      --add-host="haxtools:127.0.0.1" \
+      --hostname=haxtools \
+      --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+    fi
   fi
 }
 
