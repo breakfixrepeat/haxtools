@@ -571,6 +571,48 @@ WzM4OzI7MDswOzBtG1szODsyOzA7MDswbSAbWzM4OzI7MDswOzBtG1szODsyOzA7MDswbSAbWzM4
 OzI7MDswOzBtG1szODsyOzA7MDswbSAbWzM4OzI7MDswOzBtG1szODsyOzA7MDswbSAbWzM4OzI7
 MDswOzBtG1szODsyOzA7MDswbSAbWzM4OzI7MDswOzBtG1szODsyOzA7MDswbSAbWzBtCg=='
 
+cyan_fg='\e[96m'
+green_fg='\e[92m'
+red_fg='\e[31m'
+bold='\e[1m'
+blink='\e[5m'
+reset='\e[0m'
+reset_blink='\e[25m'
+
+
+ovpn_status () {
+  OVPN_TIMEOUT=0
+  while [[ $OVPN_TIMEOUT -le 50 ]]
+  do
+    if ! ip a s | grep "tun0" > /dev/null
+    then
+      ((OVPN_TIMEOUT++))
+      sleep .1
+    else
+      break
+    fi
+  done
+  if [[ $OVPN_TIMEOUT -le 50 ]]
+  then
+    echo -e "[${green_fg}*${reset}] OpenVPN connected"
+    OVPN_IP4=$(ip -j -p -4 a s tun0 | jq -r '.[].addr_info[].local' 2>/dev/null)
+    OVPN_IP6=$(ip -j -p -6 a s tun0 | jq -r '.[].addr_info[].local' 2>/dev/null)
+    if [[ -n $OVPN_IP4 ]]
+    then
+      echo "    IPv4: ${OVPN_IP4}"
+    fi
+    if [[ -n $OVPN_IP6 ]]
+    then
+      echo "    IPv6: ${OVPN_IP6}"
+    fi
+    echo -e "\n"
+  else
+    echo -e "[${red_fg}!${reset}] Timed out waiting for OpenVPN interface"
+    echo "    Check /var/log/ovpn.log\n"
+  fi
+}
+
+
 if [ "$HAXTOOLS_BANNER" != "false" ]; then
   base64 -d <<< "$banner"
   echo -e "\n\n"
@@ -579,14 +621,27 @@ fi
 USER_ID=${LOCAL_USER_ID:-1000}
 USER_GID=${LOCAL_USER_GID:-1000}
 
+OVPN_CFG=/root/.ovpn/${OVPN_CFG}
+
 if [[ $USER_ID -gt 0 ]]
 then
   groupadd -fg $USER_GID hax
   useradd --home-dir /home/hax --groups=sudo --shell=/bin/zsh --uid $USER_ID --gid $USER_GID hax
   echo 'hax:hax' | chpasswd
   cd /home/hax
+  if [[ $OVPN_CONNECT -eq "true" && -f $OVPN_CFG ]]
+  then
+    openvpn --config $OVPN_CFG --user hax --group hax --daemon --log /var/log/ovpn.log > /dev/null
+    ovpn_status
+  fi
+
   exec gosu hax "$@"
 else
   cd /root
+  if [[ $OVPN_CONNECT -eq "true" && -f $OVPN_CFG ]]
+  then
+    openvpn --config $OVPN_CFG --daemon --log /var/log/ovpn.log > /dev/null
+    ovpn_status
+  fi
   exec "$@"
 fi

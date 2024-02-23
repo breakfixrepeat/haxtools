@@ -1,4 +1,4 @@
-# Haxtools
+# Haxtools [![Docker](https://github.com/breakfixrepeat/haxtools/actions/workflows/docker-ci.yml/badge.svg)](https://github.com/breakfixrepeat/haxtools/actions/workflows/docker-ci.yml)
 
 ***A highly customised CTF, bug bounty hunting & penetration testing environment based on the official kali-rolling docker image.***
 
@@ -46,6 +46,10 @@ You can install these optional extras in to your haxtools instances home directo
 hax [-ioe|--install-optional-extras]
 ```
 *This will occupy roughly an additional 2GB*.
+
+## OpenVPN Support
+
+Connecting to OpenVPN at runtime is supported. Just rename your ovpn file to `config.ovpn` and place it in the `.haxtools` directory.
 
 ## GUI Apps
 
