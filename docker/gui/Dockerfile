@@ -26,10 +26,10 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
     && rm -rf /var/lib/gems/*/doc \
     && rm -rf /usr/share/icons/Adwaita/*
 
-RUN bash -c 'mkdir /usr/share/neo4j/{run,logs}' \
-    && /usr/share/neo4j/bin/neo4j-admin set-initial-password blood \
-    && echo "dbms.active_database=BloodHoundExampleDB.graphdb" >> /usr/share/neo4j/conf/neo4j.conf \
-    && echo "dbms.allow_upgrade=true" >> /usr/share/neo4j/conf/neo4j.conf
+# RUN bash -c 'mkdir /usr/share/neo4j/{run,logs}' \
+#     && /usr/share/neo4j/bin/neo4j-admin set-initial-password blood \
+#     && echo "dbms.active_database=BloodHoundExampleDB.graphdb" >> /usr/share/neo4j/conf/neo4j.conf \
+#     && echo "dbms.allow_upgrade=true" >> /usr/share/neo4j/conf/neo4j.conf
 
-RUN update-ca-certificates \
-    && rm -rf /usr/local/share/ca-certificates/*.crt
+# RUN update-ca-certificates \
+#     && rm -rf /usr/local/share/ca-certificates/*.crt
