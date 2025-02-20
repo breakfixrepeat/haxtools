@@ -3,7 +3,7 @@ FROM infosux/haxtools:cli
 RUN export DEBIAN_FRONTEND="noninteractive" \
     && apt-get -yqq update \
     && apt-get -yqq install \
-        bloodhound \
+        # bloodhound \
         burpsuite \
         chromium \
         dirbuster \
