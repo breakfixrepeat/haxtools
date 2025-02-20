@@ -1,4 +1,4 @@
-name: Docker
+name: Docker Build
 
 on:
   push:
@@ -18,7 +18,7 @@ on:
         - warning
         - debug
 jobs:
-  build:
+  build_amd64:
     runs-on: ubuntu-latest
 
     steps:
@@ -41,22 +41,9 @@ jobs:
           df -h
       
       - uses: actions/checkout@v4
-
-      - name: Set up QEMU        
-        uses: docker/setup-qemu-action@v3
-
-      - name: Disk free
-        run: |
-          echo "Free disk space:"
-          df -h
       
       - name: Set up Docker Buildx        
         uses: docker/setup-buildx-action@v3
-
-      - name: Disk free
-        run: |
-          echo "Free disk space:"
-          df -h
 
       - name: Docker login
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin docker.io
@@ -69,7 +56,7 @@ jobs:
           export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
           export VCS_URL=$(git config --get remote.origin.url)
           export VCS_REF=$(git rev-parse --short HEAD)
-          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:base --push --platform=linux/arm64,linux/amd64 .
+          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:base --push --platform=linux/amd64 .
           docker system prune -af
       
       - name: Disk free
@@ -85,7 +72,7 @@ jobs:
           export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
           export VCS_URL=$(git config --get remote.origin.url)
           export VCS_REF=$(git rev-parse --short HEAD)
-          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:cli --push --platform=linux/arm64,linux/amd64 .
+          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:cli --push --platform=linux/amd64 .
           docker system prune -af
 
       - name: Disk free
@@ -101,7 +88,85 @@ jobs:
           export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
           export VCS_URL=$(git config --get remote.origin.url)
           export VCS_REF=$(git rev-parse --short HEAD)
-          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:gui --push --platform=linux/arm64,linux/amd64 .
+          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:gui --push --platform=linux/amd64 .
+          docker system prune -af
+
+      - name: Disk free
+        run: |
+          echo "Free disk space:"
+          df -h
+
+  build_arm64:
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Disk free
+        run: |
+          echo "Free disk space:"
+          df -h
+      
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+      
+      - name: Disk free
+        run: |
+          echo "Free disk space:"
+          df -h
+      
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx        
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker login
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin docker.io
+
+      - name: Build base
+        working-directory: ./docker/base
+        run: |
+          export MAINTAINER="infosux"
+          export BUILD_DATE=$(date -u +"%Y-%m-%d")
+          export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
+          export VCS_URL=$(git config --get remote.origin.url)
+          export VCS_REF=$(git rev-parse --short HEAD)
+          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:base --push --platform=linux/arm64 .
+          docker system prune -af
+      
+      - name: Disk free
+        run: |
+          echo "Free disk space:"
+          df -h
+
+      - name: Build cli
+        working-directory: ./docker/cli
+        run: |
+          export MAINTAINER="infosux"
+          export BUILD_DATE=$(date -u +"%Y-%m-%d")
+          export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
+          export VCS_URL=$(git config --get remote.origin.url)
+          export VCS_REF=$(git rev-parse --short HEAD)
+          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:cli --push --platform=linux/arm64 .
+          docker system prune -af
+
+      - name: Disk free
+        run: |
+          echo "Free disk space:"
+          df -h
+
+      - name: Build full
+        working-directory: ./docker/gui
+        run: |
+          export MAINTAINER="infosux"
+          export BUILD_DATE=$(date -u +"%Y-%m-%d")
+          export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
+          export VCS_URL=$(git config --get remote.origin.url)
+          export VCS_REF=$(git rev-parse --short HEAD)
+          docker buildx build --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t ${{ secrets.DOCKER_USERNAME }}/haxtools:gui --push --platform=linux/arm64 .
           docker system prune -af
 
       - name: Disk free
