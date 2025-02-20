@@ -10,6 +10,16 @@
 HAXTOOLS_HOME=$HAXTOOLS_DIR/home
 HAXRC=$HAXTOOLS_DIR/.haxrc
 
+# System Architecture
+if [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]]; then
+  SYS_ARCH="arm64"
+elif [[ "$(uname -m)" == "x86_64" || "$(uname -m)" == "amd64" ]]; then
+  SYS_ARCH="amd64"
+else
+  echo -e "${red_fg}Unsupported architecture: $(uname -m)${reset}"
+  exit 1
+fi
+
 # Docker container UID
 # Default is your current users UID
 # If you change this you will need to delete the $HAXTOOLS_HOME/.antigen directory if it exists
@@ -660,7 +670,7 @@ haxtools(){
       --net=host \
       --add-host="haxtools:127.0.0.1" \
       --hostname=haxtools \
-      --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION}_${SYS_ARCH} "$@"
     else
       docker run -it --rm \
       -e DISPLAY=docker.for.mac.host.internal:0 \
@@ -674,7 +684,7 @@ haxtools(){
       --net=host \
       --add-host="haxtools:127.0.0.1" \
       --hostname=haxtools \
-      --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION}_${SYS_ARCH} "$@"
     fi
   else
     if [[ -f $HAXTOOLS_DIR/$OVPN_CFG ]]
@@ -692,7 +702,7 @@ haxtools(){
       --net=host \
       --add-host="haxtools:127.0.0.1" \
       --hostname=haxtools \
-      --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION}_${SYS_ARCH} "$@"
     else
       docker run -it --rm \
       -e DISPLAY=unix$DISPLAY \
@@ -706,7 +716,7 @@ haxtools(){
       --net=host \
       --add-host="haxtools:127.0.0.1" \
       --hostname=haxtools \
-      --name $haxtools_name infosux/haxtools:$HAXTOOLS_VERSION "$@"
+      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION}_${SYS_ARCH} "$@"
     fi
   fi
 }
@@ -764,7 +774,7 @@ haxtools-update(){
 
   git -C $HAXTOOLS_HOME/.tmux pull https://github.com/gpakosz/.tmux
 
-  docker pull infosux/haxtools:full
+  docker pull infosux/haxtools:${HAXTOOLS_VERSION}_${SYS_ARCH}
   docker rmi $(docker images -f "dangling=true" -q)
 
   source $HAXRC

@@ -1,3 +1,5 @@
+ARG BASE_TAG
+
 FROM golang:alpine AS build
 
 RUN apk add \
@@ -51,7 +53,8 @@ RUN cp /tmp/RustScan/target/release/rustscan /root/bin/
 RUN cp /tmp/massdns/bin/massdns /root/bin/
 RUN upx /root/bin/*
 
-FROM infosux/haxtools:base
+
+FROM infosux/haxtools:${BASE_TAG:-base}
 
 COPY --from=build /go/pkg/mod/github.com/tomnomnom/meg@v0.3.0/lists/ /opt/meg/
 COPY --from=build /root/bin/ /usr/bin/

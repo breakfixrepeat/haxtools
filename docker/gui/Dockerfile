@@ -1,4 +1,6 @@
-FROM infosux/haxtools:cli
+ARG BASE_TAG
+
+FROM infosux/haxtools:${BASE_TAG:-cli}
 
 RUN export DEBIAN_FRONTEND="noninteractive" \
     && apt-get -yqq update \

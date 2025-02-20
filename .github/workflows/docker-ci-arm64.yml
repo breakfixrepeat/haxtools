@@ -1,0 +1,131 @@
+name: Docker arm64
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'docker/**'
+  schedule:
+    - cron: '0 3 * * 6'
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+        - info
+        - warning
+        - debug
+jobs:
+  build_arm64:
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Disk free
+        run: |
+          echo "Free disk space:"
+          df -h
+      
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+      
+      - name: Disk free
+        run: |
+          echo "Free disk space:"
+          df -h
+      
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx        
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker login
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin docker.io
+
+      - name: Build base
+        working-directory: ./docker/base
+        run: |
+          if [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]]; then
+            BUILD_ARCH="arm64"
+          elif [[ "$(uname -m)" == "x86_64" || "$(uname -m)" == "amd64" ]]; then
+            BUILD_ARCH="amd64"
+          else
+            echo "Unknown architecture"
+            exit 1
+          fi
+          export TAG_NAME=base_${BUILD_ARCH}
+          export IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/haxtools:$TAG_NAME
+          export MAINTAINER="infosux"
+          export BUILD_DATE=$(date -u +"%Y-%m-%d")
+          export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
+          export VCS_URL=$(git config --get remote.origin.url)
+          export VCS_REF=$(git rev-parse --short HEAD)
+          docker buildx build --build-arg TAG_NAME=$TAG_NAME --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/arm64 .
+          docker system prune -af
+      
+      - name: Disk free
+        run: |
+          echo "Free disk space:"
+          df -h
+
+      - name: Build cli
+        working-directory: ./docker/cli
+        run: |
+          if [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]]; then
+            BUILD_ARCH="arm64"
+          elif [[ "$(uname -m)" == "x86_64" || "$(uname -m)" == "amd64" ]]; then
+            BUILD_ARCH="amd64"
+          else
+            echo "Unknown architecture"
+            exit 1
+          fi
+          export TAG_NAME=cli_${BUILD_ARCH}
+          export IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/haxtools:$TAG_NAME
+          export BASE_TAG=base_${BUILD_ARCH}
+          export MAINTAINER="infosux"
+          export BUILD_DATE=$(date -u +"%Y-%m-%d")
+          export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
+          export VCS_URL=$(git config --get remote.origin.url)
+          export VCS_REF=$(git rev-parse --short HEAD)
+          docker buildx build --build-arg BASE_TAG=$BASE_TAG --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/arm64 .
+          docker system prune -af
+
+      - name: Disk free
+        run: |
+          echo "Free disk space:"
+          df -h
+
+      - name: Build gui
+        working-directory: ./docker/gui
+        run: |
+          if [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]]; then
+            BUILD_ARCH="arm64"
+          elif [[ "$(uname -m)" == "x86_64" || "$(uname -m)" == "amd64" ]]; then
+            BUILD_ARCH="amd64"
+          else
+            echo "Unknown architecture"
+            exit 1
+          fi
+          export TAG_NAME=gui_${BUILD_ARCH}
+          export IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/haxtools:$TAG_NAME
+          export BASE_TAG=cli_${BUILD_ARCH}
+          export MAINTAINER="infosux"
+          export BUILD_DATE=$(date -u +"%Y-%m-%d")
+          export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
+          export VCS_URL=$(git config --get remote.origin.url)
+          export VCS_REF=$(git rev-parse --short HEAD)
+          docker buildx build --build-arg BASE_TAG=$BASE_TAG --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/arm64 .
+          docker system prune -af
+
+      - name: Disk free
+        run: |
+          echo "Free disk space:"
+          df -h
