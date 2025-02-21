@@ -3,7 +3,7 @@ name: Docker
 on:
   push:
     branches:
-      - main
+      - '*'
     paths:
       - 'docker/**'
   schedule:
@@ -19,6 +19,9 @@ on:
         - info
         - warning
         - debug
+env:
+  GITHUB_BRANCH: ${{ github.head_ref || github.ref_name }}
+
 jobs:
   build:
     strategy:
@@ -74,7 +77,11 @@ jobs:
             echo "Unknown architecture"
             exit 1
           fi
-          export TAG_NAME=base-${BUILD_ARCH}
+          if [[ $GITHUB_BRANCH != "main" ]]; then
+            export TAG_NAME=base-${BUILD_ARCH}-dev
+          else
+            export TAG_NAME=base-${BUILD_ARCH}
+          fi
           export IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/haxtools:$TAG_NAME
           export MAINTAINER="infosux"
           export BUILD_DATE=$(date -u +"%Y-%m-%d")
@@ -100,9 +107,14 @@ jobs:
             echo "Unknown architecture"
             exit 1
           fi
-          export TAG_NAME=cli-${BUILD_ARCH}
+          if [[ $GITHUB_BRANCH != "main" ]]; then
+            export TAG_NAME=cli-${BUILD_ARCH}-dev
+            export BASE_TAG=base-${BUILD_ARCH}-dev
+          else
+            export TAG_NAME=cli-${BUILD_ARCH}
+            export BASE_TAG=base-${BUILD_ARCH}
+          fi
           export IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/haxtools:$TAG_NAME
-          export BASE_TAG=base-${BUILD_ARCH}
           export MAINTAINER="infosux"
           export BUILD_DATE=$(date -u +"%Y-%m-%d")
           export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
@@ -127,9 +139,14 @@ jobs:
             echo "Unknown architecture"
             exit 1
           fi
-          export TAG_NAME=gui-${BUILD_ARCH}
+          if [[ $GITHUB_BRANCH != "main" ]]; then
+            export TAG_NAME=gui-${BUILD_ARCH}-dev
+            export BASE_TAG=cli-${BUILD_ARCH}-dev
+          else
+            export TAG_NAME=gui-${BUILD_ARCH}
+            export BASE_TAG=cli-${BUILD_ARCH}
+          fi
           export IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/haxtools:$TAG_NAME
-          export BASE_TAG=cli-${BUILD_ARCH}
           export MAINTAINER="infosux"
           export BUILD_DATE=$(date -u +"%Y-%m-%d")
           export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
@@ -158,9 +175,12 @@ jobs:
 
       - name: Create and Push haxtools:${{ matrix.image }}
         run: |
-          AMD64_DIGEST=$(docker buildx imagetools inspect ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-amd64 --format '{{json .Manifest}}' | jq -r '.digest')
-          ARM64_DIGEST=$(docker buildx imagetools inspect ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-arm64 --format '{{json .Manifest}}' | jq -r '.digest')
-          docker manifest create ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }} \
-            ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-amd64@$AMD64_DIGEST \
-            ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-arm64@$ARM64_DIGEST
-          docker manifest push ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}
+          if [[ $GITHUB_BRANCH != "main" ]]; then
+            export BRANCH_SUFFIX="-dev"
+          fi
+          AMD64_DIGEST=$(docker buildx imagetools inspect ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-amd64${BRANCH_SUFFIX} --format '{{json .Manifest}}' | jq -r '.digest')
+          ARM64_DIGEST=$(docker buildx imagetools inspect ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-arm64${BRANCH_SUFFIX} --format '{{json .Manifest}}' | jq -r '.digest')
+          docker manifest create ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}${BRANCH_SUFFIX} \
+            ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-amd64${BRANCH_SUFFIX}@$AMD64_DIGEST \
+            ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-arm64${BRANCH_SUFFIX}@$ARM64_DIGEST
+          docker manifest push ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}${BRANCH_SUFFIX}
