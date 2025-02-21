@@ -8,7 +8,6 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
         # bloodhound \
         burpsuite \
         chromium \
-        dirbuster \
         firefox-esr \
     && apt-get -y autoremove --purge \
     && apt-get clean \

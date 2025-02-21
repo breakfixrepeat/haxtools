@@ -67,8 +67,6 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
         commix \
         crackmapexec \
         dirb \
-        gdb \
-        gdb-peda \
         gobuster \
         hashcat \
         hashcat-utils \
@@ -84,7 +82,6 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
         pwncat \
         python3-impacket \
         python3-pwntools \
-        radare2 \
         responder \
         smbmap \
         sqlmap \
