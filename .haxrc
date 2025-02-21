@@ -10,16 +10,6 @@
 HAXTOOLS_HOME=$HAXTOOLS_DIR/home
 HAXRC=$HAXTOOLS_DIR/.haxrc
 
-# System Architecture
-if [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]]; then
-  SYS_ARCH="arm64"
-elif [[ "$(uname -m)" == "x86_64" || "$(uname -m)" == "amd64" ]]; then
-  SYS_ARCH="amd64"
-else
-  echo -e "${red_fg}Unsupported architecture: $(uname -m)${reset}"
-  exit 1
-fi
-
 # Docker container UID
 # Default is your current users UID
 # If you change this you will need to delete the $HAXTOOLS_HOME/.antigen directory if it exists
@@ -31,6 +21,15 @@ OVPN_CONNECT=true
 OVPN_CFG=config.ovpn
 
 ### Here be dragons ###
+if [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]]; then
+  SYS_ARCH="arm64"
+elif [[ "$(uname -m)" == "x86_64" || "$(uname -m)" == "amd64" ]]; then
+  SYS_ARCH="amd64"
+else
+  echo -e "${red_fg}Haxtools - Unsupported architecture: $(uname -m)${reset}"
+  exit 1
+fi
+
 if [[ $LOCAL_USER_ID -gt 0 ]]; then
   HAXTOOLS_VOLUMES=(
     $HAXTOOLS_USER_VOLUMES
@@ -670,7 +669,7 @@ haxtools(){
       --net=host \
       --add-host="haxtools:127.0.0.1" \
       --hostname=haxtools \
-      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION}_${SYS_ARCH} "$@"
+      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION} "$@"
     else
       docker run -it --rm \
       -e DISPLAY=docker.for.mac.host.internal:0 \
@@ -684,7 +683,7 @@ haxtools(){
       --net=host \
       --add-host="haxtools:127.0.0.1" \
       --hostname=haxtools \
-      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION}_${SYS_ARCH} "$@"
+      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION} "$@"
     fi
   else
     if [[ -f $HAXTOOLS_DIR/$OVPN_CFG ]]
@@ -702,7 +701,7 @@ haxtools(){
       --net=host \
       --add-host="haxtools:127.0.0.1" \
       --hostname=haxtools \
-      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION}_${SYS_ARCH} "$@"
+      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION} "$@"
     else
       docker run -it --rm \
       -e DISPLAY=unix$DISPLAY \
@@ -716,7 +715,7 @@ haxtools(){
       --net=host \
       --add-host="haxtools:127.0.0.1" \
       --hostname=haxtools \
-      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION}_${SYS_ARCH} "$@"
+      --name $haxtools_name infosux/haxtools:${HAXTOOLS_VERSION} "$@"
     fi
   fi
 }
@@ -774,7 +773,7 @@ haxtools-update(){
 
   git -C $HAXTOOLS_HOME/.tmux pull https://github.com/gpakosz/.tmux
 
-  docker pull infosux/haxtools:${HAXTOOLS_VERSION}_${SYS_ARCH}
+  docker pull infosux/haxtools:${HAXTOOLS_VERSION}
   docker rmi $(docker images -f "dangling=true" -q)
 
   source $HAXRC

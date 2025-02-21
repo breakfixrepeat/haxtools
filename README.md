@@ -1,4 +1,4 @@
-[![Docker](https://github.com/0xC0FFEEEE/haxtools/actions/workflows/docker-ci-amd64.yml/badge.svg)](https://github.com/0xC0FFEEEE/haxtools/actions/workflows/docker-ci-amd64.yml) [![Docker](https://github.com/0xC0FFEEEE/haxtools/actions/workflows/docker-ci-arm64.yml/badge.svg)](https://github.com/0xC0FFEEEE/haxtools/actions/workflows/docker-ci-arm64.yml)
+[![Docker](https://github.com/0xC0FFEEEE/haxtools/actions/workflows/docker-ci.yml/badge.svg)](https://github.com/0xC0FFEEEE/haxtools/actions/workflows/docker-ci.yml)
 # Haxtools
 
 ***A highly customised CTF, bug bounty hunting & penetration testing environment based on the official kali-rolling docker image.***

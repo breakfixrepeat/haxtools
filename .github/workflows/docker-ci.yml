@@ -1,4 +1,4 @@
-name: Docker amd64
+name: Docker
 
 on:
   push:
@@ -20,8 +20,16 @@ on:
         - warning
         - debug
 jobs:
-  build_amd64:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Disk free
@@ -44,13 +52,16 @@ jobs:
       
       - uses: actions/checkout@v4
       
-      - name: Set up Docker Buildx        
+      - name: Set up Docker Buildx  
         uses: docker/setup-buildx-action@v3
 
-      - name: Docker login
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin docker.io
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build base
+      - name: Build base ${{ matrix.arch }}
         working-directory: ./docker/base
         run: |
           if [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]]; then
@@ -68,7 +79,7 @@ jobs:
           export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
           export VCS_URL=$(git config --get remote.origin.url)
           export VCS_REF=$(git rev-parse --short HEAD)
-          docker buildx build --build-arg TAG_NAME=$TAG_NAME --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/amd64 .
+          docker buildx build --build-arg TAG_NAME=$TAG_NAME --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/$BUILD_ARCH .
           docker system prune -af
       
       - name: Disk free
@@ -76,7 +87,7 @@ jobs:
           echo "Free disk space:"
           df -h
 
-      - name: Build cli
+      - name: Build cli ${{ matrix.arch }}
         working-directory: ./docker/cli
         run: |
           if [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]]; then
@@ -95,7 +106,7 @@ jobs:
           export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
           export VCS_URL=$(git config --get remote.origin.url)
           export VCS_REF=$(git rev-parse --short HEAD)
-          docker buildx build --build-arg BASE_TAG=$BASE_TAG --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/amd64 .
+          docker buildx build --build-arg BASE_TAG=$BASE_TAG --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/$BUILD_ARCH .
           docker system prune -af
 
       - name: Disk free
@@ -103,7 +114,7 @@ jobs:
           echo "Free disk space:"
           df -h
 
-      - name: Build gui
+      - name: Build gui ${{ matrix.arch }}
         working-directory: ./docker/gui
         run: |
           if [[ "$(uname -m)" == "aarch64" || "$(uname -m)" == "arm64" ]]; then
@@ -122,10 +133,30 @@ jobs:
           export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
           export VCS_URL=$(git config --get remote.origin.url)
           export VCS_REF=$(git rev-parse --short HEAD)
-          docker buildx build --build-arg BASE_TAG=$BASE_TAG --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/amd64 .
+          docker buildx build --build-arg BASE_TAG=$BASE_TAG --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/$BUILD_ARCH .
           docker system prune -af
 
       - name: Disk free
         run: |
           echo "Free disk space:"
           df -h
+
+  create-manifests:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image: [base, cli, gui]
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Create and Push haxtools:${{ matrix.image }}
+        run: |
+          docker manifest create ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }} \
+            ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}_amd64 \
+            ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}_arm64
+          docker manifest push ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}
