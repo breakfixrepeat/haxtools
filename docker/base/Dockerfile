@@ -30,6 +30,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
         openssh-client \
         openssl \
         openvpn \
+        pipx \
         proxychains4 \
         python3 \
         python3-pip \
