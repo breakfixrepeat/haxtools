@@ -1,12 +1,17 @@
 ARG BASE_TAG
 
-FROM golang:alpine AS build
+FROM golang:bookworm AS build
 
-RUN apk add \
+RUN export DEBIAN_FRONTEND="noninteractive" \
+    && echo "deb http://deb.debian.org/debian bookworm-backports main" > /etc/apt/sources.list.d/backports.list \
+    && echo "Acquire::http {No-Cache=True;};" > /etc/apt/apt.conf.d/no-cache \
+    && echo 'Acquire::Languages "none;";' > /etc/apt/apt.conf.d/no-lang \
+    && apt-get -yqq update \
+    && apt-get --no-install-recommends -yqq install \
         curl \
         git \
-        build-base \
-        upx
+        libpcap-dev \
+        upx-ucl
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/tomnomnom/meg@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/tomnomnom/assetfinder@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/tomnomnom/gf@latest
@@ -15,18 +20,16 @@ RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/tomnomnom/wa
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/tomnomnom/unfurl@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/tomnomnom/anew@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/jaeles-project/gospider@latest
-RUN git clone https://github.com/zmap/zdns.git /go/src/zdns && \
-    cd /go/src/zdns && \
-    CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w"
+RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/zmap/zdns@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/ffuf/ffuf@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/hakluke/hakrawler@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/003random/getJS@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/zricethezav/gitleaks@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/lc/gau@latest
-RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
+RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/shuffledns/cmd/shuffledns@latest
-RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/naabu/cmd/naabu@latest
+RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/naabu/v2/cmd/naabu@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/chaos-client/cmd/chaos@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/dnsx/cmd/dnsx@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/httpx/cmd/httpx@latest
@@ -36,7 +39,7 @@ RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdisco
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/proxify/cmd/proxify@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/cloudlist/cmd/cloudlist@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/uncover/cmd/uncover@latest
-RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/owasp-amass/amass/v3/...@master
+RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/owasp-amass/amass/v4/...@master
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/hahwul/dalfox/v2@latest
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
     && . $HOME/.cargo/env \
