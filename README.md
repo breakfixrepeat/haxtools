@@ -1,7 +1,11 @@
-[![Docker](https://github.com/0xC0FFEEEE/haxtools/actions/workflows/docker-ci.yml/badge.svg)](https://github.com/0xC0FFEEEE/haxtools/actions/workflows/docker-ci.yml)
 # Haxtools
 
+![Haxtools logo](docs/logo.png)
+
 ***A highly customised CTF, bug bounty hunting & penetration testing environment based on the official kali-rolling docker image.***
+
+[![Docker](https://github.com/0xC0FFEEEE/haxtools/actions/workflows/docker-ci.yml/badge.svg)](https://github.com/0xC0FFEEEE/haxtools/actions/workflows/docker-ci.yml)
+
 
 Haxtools provides a wrapper for the [haxtools docker image](https://hub.docker.com/repository/docker/infosux/haxtools/general) (and any other docker image for that matter) by sourcing itself within your shell's rc file.
 
