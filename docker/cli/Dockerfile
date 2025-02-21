@@ -39,6 +39,11 @@ RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdisco
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/proxify/cmd/proxify@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/cloudlist/cmd/cloudlist@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/uncover/cmd/uncover@latest
+RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/cvemap/cmd/cvemap@latest
+RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/alterx/cmd/alterx@latest
+RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/cdncheck/cmd/cdncheck@latest
+RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/notify/cmd/notify@latest
+RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/projectdiscovery/urlfinder/cmd/urlfinder@latest
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/owasp-amass/amass/v4/...@master
 RUN CGO_ENABLED=1 GOOS=linux go install -ldflags="-s -w" github.com/hahwul/dalfox/v2@latest
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
