@@ -27,8 +27,10 @@ jobs:
         include:
           - arch: amd64
             runner: ubuntu-latest
+            platform: linux/amd64
           - arch: arm64
             runner: ubuntu-24.04-arm
+            platform: linux/arm64
     runs-on: ${{ matrix.runner }}
 
     steps:
@@ -51,15 +53,15 @@ jobs:
           df -h
       
       - uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx  
-        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Set up Docker Buildx  
+        uses: docker/setup-buildx-action@v3
 
       - name: Build base ${{ matrix.arch }}
         working-directory: ./docker/base
@@ -72,14 +74,14 @@ jobs:
             echo "Unknown architecture"
             exit 1
           fi
-          export TAG_NAME=base_${BUILD_ARCH}
+          export TAG_NAME=base-${BUILD_ARCH}
           export IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/haxtools:$TAG_NAME
           export MAINTAINER="infosux"
           export BUILD_DATE=$(date -u +"%Y-%m-%d")
           export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
           export VCS_URL=$(git config --get remote.origin.url)
           export VCS_REF=$(git rev-parse --short HEAD)
-          docker buildx build --build-arg TAG_NAME=$TAG_NAME --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/$BUILD_ARCH .
+          docker buildx build --provenance false --platform=${{ matrix.platform }} --build-arg TAG_NAME=$TAG_NAME --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push .
           docker system prune -af
       
       - name: Disk free
@@ -98,15 +100,15 @@ jobs:
             echo "Unknown architecture"
             exit 1
           fi
-          export TAG_NAME=cli_${BUILD_ARCH}
+          export TAG_NAME=cli-${BUILD_ARCH}
           export IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/haxtools:$TAG_NAME
-          export BASE_TAG=base_${BUILD_ARCH}
+          export BASE_TAG=base-${BUILD_ARCH}
           export MAINTAINER="infosux"
           export BUILD_DATE=$(date -u +"%Y-%m-%d")
           export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
           export VCS_URL=$(git config --get remote.origin.url)
           export VCS_REF=$(git rev-parse --short HEAD)
-          docker buildx build --build-arg BASE_TAG=$BASE_TAG --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/$BUILD_ARCH .
+          docker buildx build --provenance false --platform=${{ matrix.platform }} --build-arg BASE_TAG=$BASE_TAG --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push .
           docker system prune -af
 
       - name: Disk free
@@ -125,15 +127,15 @@ jobs:
             echo "Unknown architecture"
             exit 1
           fi
-          export TAG_NAME=gui_${BUILD_ARCH}
+          export TAG_NAME=gui-${BUILD_ARCH}
           export IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/haxtools:$TAG_NAME
-          export BASE_TAG=cli_${BUILD_ARCH}
+          export BASE_TAG=cli-${BUILD_ARCH}
           export MAINTAINER="infosux"
           export BUILD_DATE=$(date -u +"%Y-%m-%d")
           export BUILD_TIME=$(date -u +"%H:%M:%S UTC")
           export VCS_URL=$(git config --get remote.origin.url)
           export VCS_REF=$(git rev-parse --short HEAD)
-          docker buildx build --build-arg BASE_TAG=$BASE_TAG --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push --platform=linux/$BUILD_ARCH .
+          docker buildx build --provenance false --platform=${{ matrix.platform }} --build-arg BASE_TAG=$BASE_TAG --build-arg MAINTAINER --build-arg BUILD_DATE --build-arg BUILD_TIME -t $IMAGE_NAME --push .
           docker system prune -af
 
       - name: Disk free
@@ -156,7 +158,9 @@ jobs:
 
       - name: Create and Push haxtools:${{ matrix.image }}
         run: |
+          AMD64_DIGEST=$(docker buildx imagetools inspect ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-amd64 --format '{{json .Manifest}}' | jq -r '.digest')
+          ARM64_DIGEST=$(docker buildx imagetools inspect ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-arm64 --format '{{json .Manifest}}' | jq -r '.digest')
           docker manifest create ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }} \
-            ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}_amd64 \
-            ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}_arm64
+            ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-amd64@$AMD64_DIGEST \
+            ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}-arm64@$ARM64_DIGEST
           docker manifest push ${{ secrets.DOCKER_USERNAME }}/haxtools:${{ matrix.image }}
