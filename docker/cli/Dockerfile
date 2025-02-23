@@ -83,6 +83,7 @@ RUN export DEBIAN_FRONTEND="noninteractive" \
         john \
         joomscan \
         masscan \
+        metasploit-framework \
         mitmproxy \
         pdfcrack \
         pngcheck \
