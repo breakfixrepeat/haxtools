@@ -1,0 +1,96 @@
+allow-list:
+  severity: []
+  tags: []
+deny-list:
+  severity: []
+  tags: []
+github:
+  base-url: ""
+  username: ""
+  owner: ""
+  token: ""
+  project-name: ""
+  issue-label: ""
+  severity-as-label: false
+  allow-list: null
+  deny-list: null
+  duplicate-issue-check: false
+gitlab:
+  base-url: ""
+  username: ""
+  token: ""
+  project-name: ""
+  issue-label: ""
+  severity-as-label: false
+  allow-list: null
+  deny-list: null
+  duplicate-issue-check: false
+gitea:
+  base-url: ""
+  token: ""
+  project-owner: ""
+  project-name: ""
+  issue-label: ""
+  severity-as-label: false
+  allow-list: null
+  deny-list: null
+  duplicate-issue-check: false
+jira:
+  cloud: false
+  update-existing: false
+  url: ""
+  account-id: ""
+  email: ""
+  token: ""
+  project-name: ""
+  project-id: ""
+  issue-type: ""
+  issue-type-id: ""
+  severity-as-label: false
+  allow-list: null
+  deny-list: null
+  severity: []
+  custom-fields: {}
+  status-not: ""
+linear:
+  api-key: ""
+  allow-list: null
+  deny-list: null
+  team-id: ""
+  project-id: ""
+  duplicate-issue-check: false
+  open-state-id: ""
+markdown:
+  directory: ""
+  omit-raw: false
+  sort-mode: ""
+sarif:
+  file: ""
+elasticsearch:
+  host: ""
+  ip: ""
+  port: 0
+  ssl: false
+  ssl-verification: false
+  username: ""
+  password: ""
+  index-name: ""
+splunkhec:
+  host: ""
+  port: 0
+  ssl: false
+  ssl-verification: false
+  token: ""
+  index-name: ""
+json:
+  file: ""
+  omit-raw: false
+jsonl:
+  file: ""
+  omit-raw: false
+  batch-size: 0
+mongodb:
+  connection-string: ""
+  collection-name: ""
+  omit-raw: false
+  batch-size: 0
